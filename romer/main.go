@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	Host    = flag.String("host", "127.0.0.1", "Server host")
 	Port    = flag.Int("port", 9876, "Server port")
 	Seconds = flag.Int("sec", 10, "Seconds")
 )
@@ -33,30 +34,35 @@ func doForSeconds(fun func(), s time.Duration) float64 {
 }
 
 func main() {
-	remoteAddr := fmt.Sprintf("127.0.0.1:%d", *Port)
+	remoteAddr := fmt.Sprintf("%s:%d", *Host, *Port)
 	conn, err := net.Dial("tcp", remoteAddr)
 	if err != nil {
 		log.Fatalf("Dial to %s fail: %s\n", remoteAddr, err)
 	}
 	defer conn.Close()
-	buf := make([]byte, 1024)
-	n := 0
+	size := 4096
+	buf := make([]byte, size)
+	n := 0.0
 
 	f := func() {
-		_, err = conn.Write(buf)
-		if err != nil {
-			log.Printf("write to %s fail: %s\n", conn.RemoteAddr().String(), err)
-			return
-		}
+		/*
+			_, err = conn.Write(buf)
+			if err != nil {
+				log.Printf("write to %s fail: %s\n", conn.RemoteAddr().String(), err)
+				return
+			}
+		*/
 		_, err = io.ReadFull(conn, buf)
 		if err != nil {
 			log.Printf("read from %s fail: %s\n", conn.RemoteAddr().String(), err)
 			return
 		}
-		n += 1024
+		n += float64(size)
 	}
 	seconds := doForSeconds(f, 10)
 
-	log.Println(n)
-	log.Println(seconds)
+	log.Printf("%f bytes, %f MiB\n", n, n/1024/1024)
+	log.Printf("%f seconds\n", seconds)
+	log.Printf("%f MiB/s\n", n/1024/1024/seconds)
+	log.Printf("%f Mb\n", n/1000/1000/seconds*8)
 }

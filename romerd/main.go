@@ -15,9 +15,9 @@ func init() {
 	flag.Parse()
 }
 
-func handleConn(conn net.Conn) {
+func handleEcho(conn net.Conn) {
 	defer conn.Close()
-	buf := make([]byte, 64)
+	buf := make([]byte, 4096)
 	log.Printf("Accept from %s, local %s\n", conn.RemoteAddr().String(), conn.LocalAddr().String())
 	for {
 		n, err := conn.Read(buf)
@@ -26,6 +26,32 @@ func handleConn(conn net.Conn) {
 			return
 		}
 		_, err = conn.Write(buf[:n])
+		if err != nil {
+			log.Printf("write to %s fail: %s\n", conn.RemoteAddr().String(), err)
+			return
+		}
+	}
+}
+
+func handleEat(conn net.Conn) {
+	defer conn.Close()
+	buf := make([]byte, 4096)
+	log.Printf("Accept from %s, local %s\n", conn.RemoteAddr().String(), conn.LocalAddr().String())
+	for {
+		_, err := conn.Read(buf)
+		if err != nil {
+			log.Printf("Read from %s fail: %s\n", conn.RemoteAddr().String(), err)
+			return
+		}
+	}
+}
+
+func handlePut(conn net.Conn) {
+	defer conn.Close()
+	buf := make([]byte, 8192)
+	log.Printf("Accept from %s, local %s\n", conn.RemoteAddr().String(), conn.LocalAddr().String())
+	for {
+		_, err := conn.Write(buf)
 		if err != nil {
 			log.Printf("write to %s fail: %s\n", conn.RemoteAddr().String(), err)
 			return
@@ -44,6 +70,6 @@ func main() {
 			log.Println("Accept fail: ", err)
 			continue
 		}
-		go handleConn(conn)
+		go handlePut(conn)
 	}
 }
