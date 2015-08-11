@@ -1,9 +1,19 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net"
 )
+
+var (
+	Port = flag.Int("port", 9876, "Server port")
+)
+
+func init() {
+	flag.Parse()
+}
 
 func handleConn(conn net.Conn) {
 	defer conn.Close()
@@ -24,7 +34,7 @@ func handleConn(conn net.Conn) {
 }
 
 func main() {
-	ln, err := net.Listen("tcp", ":9876")
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", *Port))
 	if err != nil {
 		log.Fatal("Listen fail: ", err)
 	}
